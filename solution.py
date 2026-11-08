@@ -1,44 +1,51 @@
-'''No terminal:
+'''
+Importação das bibliotecas necessárias
 python -m pip install pandas numpy
 
-Importação das bibliotecas necessárias'''
+'''
 import pandas as pd
 import numpy as np
 
 
 def solution(arquivo):
-    # 1. Leitura do arquivo CSV utilizando o Pandas
+    """Retorna [intercepto, coeficiente_area, coeficiente_quartos]."""
+    # 1. Leitura do arquivo CSV (id_imovel e desconsiderado)
     df = pd.read_csv(arquivo)
 
-    # 2. Seleção das colunas necessárias para a regressão
-    # O identificador id_imovel é desconsiderado, pois não influencia o modelo.
+    # 2. Selecao das colunas necessarias para a regressao
     area = df["area_util_m2"].to_list()
     quartos = df["quantidade_quartos"].to_list()
     preco = df["preco_venda"].to_list()
 
-    # 3. Construção da matriz X (variáveis preditoras)
-    # A primeira coluna contém números 1 para representar o intercepto.
-    # As outras colunas representam a área e a quantidade de quartos.
-    X = np.column_stack((
-        np.ones(len(area)),
-        area,
-        quartos
-    ))
+    # 3. Matriz X: coluna de uns (intercepto), area e quartos
+    X = np.column_stack((np.ones(len(area)), area, quartos))
 
-    # 4. Construção do vetor y (variável dependente)
-    # Contém os preços reais de venda dos imóveis.
+    # 4. Vetor y: precos de venda
     y = np.array(preco)
 
-    # 5. Cálculo dos coeficientes pela fórmula matricial:
-    # beta = (X.T @ X)^-1 @ X.T @ y
+    # 5. Coeficientes pela formula matricial: beta = (X.T @ X)^-1 @ X.T @ y
     beta = np.linalg.inv(X.T @ X) @ X.T @ y
 
-    # 6. Retorno dos coeficientes: intercepto, área e quartos.
-    # O resultado é convertido para uma lista Python.
+    # 6. Retorno como lista Python: [beta0, beta1, beta2]
     return beta.tolist()
 
-# Fim do ficheiro solution.py
 
-# Chamada da função e impressão do resultado no terminal
-resultado = solution("imoveis_lar_perfeito.csv")
-print(resultado)
+def formatar(valor):
+    """Formata no padrao brasileiro: 8265.26 -> 8.265,26"""
+    texto = f"{valor:,.2f}"
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+if __name__ == "__main__":
+    b0, b1, b2 = solution("imoveis_lar_perfeito.csv")
+
+    print("=" * 55)
+    print("  REGRESSAO LINEAR MULTIPLA - IMOBILIARIA LAR PERFEITO")
+    print("=" * 55)
+    print(f"  Intercepto (beta0): {formatar(b0):>14}")
+    print(f"  Area       (beta1): {formatar(b1):>14}  por m2")
+    print(f"  Quartos    (beta2): {formatar(b2):>14}  por quarto")
+    print("-" * 55)
+    print("  EQUACAO DO MODELO:")
+    print(f"  Preco = {formatar(b0)} + {formatar(b1)} * Area + {formatar(b2)} * Quartos")
+    print("=" * 55)
